@@ -1,0 +1,178 @@
+basePath: /
+definitions:
+  actionModel.Action:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  actionModel.ActionCreateRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  logModel.CreateLogRequest:
+    properties:
+      action_id:
+        type: integer
+    type: object
+  logModel.Log:
+    properties:
+      action_id:
+        type: integer
+      id:
+        type: integer
+      log_date:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  swagModel.AccessCreateResponse:
+    properties:
+      detail:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  title: Pood
+  version: 1.0.0
+paths:
+  /action:
+    post:
+      consumes:
+      - application/json
+      description: Создать новый action и привязаться к нему по токену
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/actionModel.ActionCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagModel.AccessCreateResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Создать новый action
+      tags:
+      - Actions
+  /action/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удалить userAction по id по токену
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Удалить userAction
+      tags:
+      - Actions
+  /action/{id}/stats:
+    get:
+      consumes:
+      - application/json
+      description: Получить статистику по id action по токену
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: date
+        in: query
+        name: filter[log_date][gte]
+        type: string
+      - description: date
+        in: query
+        name: filter[log_date][lte]
+        type: string
+      - description: field[eq]
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/logModel.Log'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: Получить статитсику
+      tags:
+      - Actions
+  /action/done:
+    post:
+      consumes:
+      - application/json
+      description: Создать лог совершенного action по токену
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/logModel.CreateLogRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagModel.AccessCreateResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Сделал action
+      tags:
+      - Actions
+  /actions/my:
+    get:
+      consumes:
+      - application/json
+      description: Получить мои actions по токену
+      parameters:
+      - description: deleted
+        in: query
+        name: deleted
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              properties:
+                action:
+                  $ref: '#/definitions/actionModel.Action'
+              type: object
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: Получить мои actions
+      tags:
+      - Actions
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
