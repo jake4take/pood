@@ -1,0 +1,22 @@
+version: '3.4'
+services:
+  pood:
+    image: ghcr.io/jake4take/pood-go:1.2
+    build:
+      context: .
+      target: pood
+    env_file:
+      - .env
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: pood
+      MYSQL_ROOT_PASSWORD: jake4an
+    volumes:
+      - ./docker/db/data:/var/lib/mysql:rw
+    ports:
+      - "3307:3306"

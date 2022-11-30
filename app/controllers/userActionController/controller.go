@@ -1,17 +1,19 @@
 package userActionController
 
 import (
-	"Pood/app/controllers/queryController"
-	"Pood/app/controllers/tokenController"
-	"Pood/app/models/actionModel"
-	"Pood/app/models/userActionModel"
-	"Pood/app/models/userModel"
-	"Pood/config"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
+	"pood/v2/app/controllers/userActionController/activeActionsService"
+	"pood/v2/app/controllers/userActionController/deletedActionService"
+	"pood/v2/app/controllers/userActionController/doneActionService"
+	"pood/v2/app/controllers/userActionController/getMyActionService"
+	"pood/v2/app/controllers/userActionController/getStatsService"
+	"pood/v2/app/models/logModel"
+	"pood/v2/app/models/userActionModel"
+	"pood/v2/app/services/queryService"
+	"pood/v2/app/services/tokenService"
+	"pood/v2/config"
 	"strconv"
 )
 
@@ -21,92 +23,44 @@ func NewUserActionController() *UserActionController {
 	return &UserActionController{}
 }
 
-// GetMyActions
+// GetMyUserActions
 // @Summary Получить мои actions
 // @Description Получить мои actions по токену
 // @Accept  json
 // @Produce json
-// @Tags    Actions
-// @Success 200 {object} userActionModel.MyActionsResponse
+// @Tags    UserActions
+// @Success 200 {array} userActionModel.MyActionsResponse
+// @Failure 400 {object} defaultModel.FailedResponse
+// @Failure 401 {object} defaultModel.FailedResponse
 // @Param deleted query boolean false "deleted"
-// @Router  /actions/my [get]
+// @Param order query string false "field[eq]"
+// @Router  /userActions/my [get]
 // @Security ApiKeyAuth
-func (UserActionController) GetMyActions(c *fiber.Ctx) error {
-	user, err := tokenController.CheckToken(c)
+func (UserActionController) GetMyUserActions(c *fiber.Ctx) error {
+	user, err := tokenService.CheckToken(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"detail": err.Error(),
-		})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"detail": err.Error()})
 	}
-	queries := queryController.GetQueries(c)
-	db := queryController.ConfigurationDbQuery(config.Db, queries)
-	fmt.Println()
+	queries := queryService.GetQueries(c)
+	db := queryService.ConfigurationDbQuery(config.Db, queries)
 
-	userActions := GetUserActions(db, *user)
+	userActions, err := getMyActionService.GetUserActions(db, *user)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": err.Error()})
+	}
 
 	data, err := json.Marshal(userActions)
 	if err != nil {
-		panic(err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": err.Error()})
 	}
 
-	var response = userActionModel.MyActionsResponse{}
+	var response []userActionModel.MyActionsResponse
 	err = json.Unmarshal(data, &response)
 	if err != nil {
-		panic(err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": err.Error()})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"actions": response,
-	})
-}
-
-// CreateMyAction
-// @Summary Создать новый action
-// @Description Создать новый action и привязаться к нему по токену
-// @Accept  json
-// @Produce json
-// @Tags    Actions
-// @Param body body actionModel.ActionCreateRequest true "body"
-// @Success 200 {object} swagModel.AccessCreateResponse
-// @Router  /action [post]
-// @Security ApiKeyAuth
-func (UserActionController) CreateMyAction(c *fiber.Ctx) error {
-	user, err := tokenController.CheckToken(c)
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"detail": err.Error(),
-		})
-	}
-
-	var reqAction *actionModel.Action
-	err = json.Unmarshal(c.Body(), &reqAction)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"detail": err.Error(),
-		})
-	}
-
-	if reqAction.Name == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"detail": errors.New("incorrect request"),
-		})
-	}
-
-	action, err := FindActionByName(*reqAction)
-	if err != nil {
-		action = CreateAction(*reqAction)
-	}
-
-	_, err = CreateUserAction(*user, *action)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"detail": err.Error(),
-		})
-	}
-
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"detail": "action created",
-	})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"data": response})
 }
 
 // DeleteAction
@@ -114,28 +68,32 @@ func (UserActionController) CreateMyAction(c *fiber.Ctx) error {
 // @Description Удалить userAction по id по токену
 // @Accept  json
 // @Produce json
-// @Tags    Actions
+// @Tags    UserActions
+// @Success 204 {object} defaultModel.SuccessResponse
+// @Failure 400 {object} defaultModel.FailedResponse
+// @Failure 401 {object} defaultModel.FailedResponse
 // @Param id path string true "id"
-// @Router  /action/{id} [delete]
+// @Router  /userAction/{id} [delete]
 // @Security ApiKeyAuth
 func (UserActionController) DeleteAction(c *fiber.Ctx) error {
-	user, err := tokenController.CheckToken(c)
+	_, err := tokenService.CheckToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"detail": err.Error(),
 		})
 	}
 
-	actionId, err := strconv.Atoi(c.Params("id", "0"))
-	if err != nil || actionId == 0 {
+	userActionId, err := strconv.Atoi(c.Params("id", "0"))
+	fmt.Println(userActionId)
+	if err != nil || userActionId == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"detail": "action not found",
 		})
 	}
 
-	err = DeleteUserAction(userActionModel.UserAction{UserId: user.ID, ActionId: uint(actionId)})
+	err = deletedActionService.DeleteUserAction(userActionModel.UserAction{ID: uint(userActionId)})
 	if err != nil {
-		fmt.Println(actionId, err)
+		fmt.Println(userActionId, err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"detail": "action not delete",
 		})
@@ -146,75 +104,154 @@ func (UserActionController) DeleteAction(c *fiber.Ctx) error {
 	})
 }
 
-func GetUserActions(db *gorm.DB, user userModel.User) (actions []userActionModel.UserAction) {
-	db.Preload("Action").
-		Where(userActionModel.UserAction{UserId: user.ID}).
-		Find(&actions)
-
-	return actions
-}
-
-func FindActionByName(action actionModel.Action) (*actionModel.Action, error) {
-	var resp actionModel.Action
-
-	err := config.Db.
-		Where(actionModel.Action{Name: action.Name}).
-		First(&resp).
-		Error
-
+// Done
+// @Summary Сделал action
+// @Description * action.type=1; required: user_action_id int;
+// @Description * action.type=2; required: user_action_id int;
+// @Description * action.type=3; required: user_action_id int, count float;
+// @Accept  json
+// @Produce json
+// @Tags    UserActions
+// @Param body body logModel.CreateLogRequest true "body"
+// @Success 200 {object} defaultModel.SuccessResponse
+// @Failure 400 {object} defaultModel.FailedResponse
+// @Failure 401 {object} defaultModel.FailedResponse
+// @Router  /userAction/done [post]
+// @Security ApiKeyAuth
+func (UserActionController) Done(c *fiber.Ctx) error {
+	user, err := tokenService.CheckToken(c)
 	if err != nil {
-		return nil, errors.New("action not found")
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"detail": err.Error(),
+		})
 	}
 
-	return &resp, nil
-}
-
-func CreateAction(action actionModel.Action) (resp *actionModel.Action) {
-	err := config.Db.FirstOrCreate(&resp, &action).Error
+	var request logModel.CreateLogRequest
+	err = json.Unmarshal(c.Body(), &request)
 	if err != nil {
-		panic(err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": err.Error()})
 	}
 
-	return resp
-}
-
-func CreateUserAction(user userModel.User, action actionModel.Action) (*userActionModel.UserAction, error) {
-	var userAction userActionModel.UserAction
-	err := config.Db.
-		FirstOrCreate(&userAction, &userActionModel.UserAction{
-			UserId:   user.ID,
-			ActionId: action.ID,
-		}).
-		Error
-
+	requestData, err := json.Marshal(request)
 	if err != nil {
-		return nil, errors.New("userAction create error")
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": err.Error()})
 	}
 
-	return &userAction, nil
-}
-
-func DeleteUserAction(userAction userActionModel.UserAction) error {
-	err := config.Db.
-		Model(userActionModel.UserAction{}).
-		Where(userAction).
-		Update("deleted", true).
-		Error
-
+	var actionLog logModel.Log
+	err = json.Unmarshal(requestData, &actionLog)
 	if err != nil {
-		return err
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": err.Error()})
 	}
 
-	return nil
+	actionLog.UserId = user.ID
+
+	if request.UserActionId == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"detail": "user_action is required parameter",
+		})
+	}
+
+	userAction, err := doneActionService.HaveUserAction(userActionModel.UserAction{ID: request.UserActionId})
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"detail": "user not have action",
+		})
+	}
+
+	response, err := doneActionService.CheckLogType(*userAction, actionLog)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"detail": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"detail": response,
+	})
 }
 
-func HaveUserAction(userAction userActionModel.UserAction) error {
-	var resp userActionModel.UserAction
-	userAction.Deleted = false
-
-	if err := config.Db.Where(&userAction).First(&resp).Error; err != nil {
-		return err
+// GetStats
+// @Summary Получить статистику
+// @Description Получить статистику по id action по токену
+// @Accept  json
+// @Produce json
+// @Tags    UserActions
+// @Param id path string true "id"
+// @Param filter[log_date][gte] query string false "date"
+// @Param filter[log_date][lte] query string false "date"
+// @Param order query string false "field[eq]"
+// @Success 200 {array} logModel.GetStatsResponse
+// @Failure 400 {object} defaultModel.FailedResponse
+// @Failure 401 {object} defaultModel.FailedResponse
+// @Router  /userAction/{id}/stats [get]
+// @Security ApiKeyAuth
+func (UserActionController) GetStats(c *fiber.Ctx) error {
+	user, err := tokenService.CheckToken(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"detail": err.Error(),
+		})
 	}
 
-	return nil
+	userActionId, err := strconv.Atoi(c.Params("id", "0"))
+	if err != nil || userActionId == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"detail": "action not found",
+		})
+	}
+
+	queries := queryService.GetQueries(c)
+	db := queryService.ConfigurationDbQuery(config.Db, queries)
+
+	var response logModel.GetStatsResponse
+	db.Where(logModel.Log{UserActionId: uint(userActionId), UserId: user.ID}).
+		Find(&response.Stats)
+
+	userAction := getStatsService.GetUserAction(userActionModel.UserAction{ID: uint(userActionId)})
+	response.UserActionId = userAction.ID
+	response.Action = *userAction.Action
+	response.Count = len(response.Stats)
+
+	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+// ActiveUserActions
+// @Summary Получить мои активные actions с типом интервал
+// @Description Получить мои активные actions с типом интервал по токену
+// @Accept  json
+// @Produce json
+// @Tags    UserActions
+// @Success 200 {object} userActionModel.MyActiveActions
+// @Failure 400 {object} defaultModel.FailedResponse
+// @Failure 401 {object} defaultModel.FailedResponse
+// @Param deleted query boolean false "deleted"
+// @Param order query string false "field[eq]"
+// @Router  /userActions/my/active [get]
+// @Security ApiKeyAuth
+func (UserActionController) ActiveUserActions(c *fiber.Ctx) error {
+	user, err := tokenService.CheckToken(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"detail": err.Error()})
+	}
+	queries := queryService.GetQueries(c)
+	db := queryService.ConfigurationDbQuery(config.Db, queries)
+
+	userActions, err := activeActionsService.GetActiveUserActions(db, *user)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": err.Error()})
+	}
+
+	var activeAction []userActionModel.MyActiveActions
+	for _, item := range userActions {
+		if len(item.Logs) != 0 {
+			newItem := userActionModel.MyActiveActions{
+				ID:        item.ID,
+				Action:    *item.Action,
+				StartTime: *item.Logs[0].StartTime,
+			}
+			activeAction = append(activeAction, newItem)
+		}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"data": activeAction})
 }

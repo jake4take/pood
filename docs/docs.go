@@ -46,23 +46,29 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/swagModel.AccessCreateResponse"
+                            "$ref": "#/definitions/defaultModel.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
                         }
                     }
                 }
             }
         },
-        "/action/done": {
-            "post": {
+        "/typeInfo": {
+            "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Создать лог совершенного action по токену",
+                "description": "Получить описание типов и вложеннымх в него сабтипов",
                 "consumes": [
                     "application/json"
                 ],
@@ -70,7 +76,74 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Actions"
+                    "TypeInfo"
+                ],
+                "summary": "Получить информацию по типам",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/typeInfoModel.TypeInfoResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/unitInfo": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "TypeInfo"
+                ],
+                "summary": "Единицы измерения",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/unitModel.Unit"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/userAction/done": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "* action.type=1; required: user_action_id int;\n* action.type=2; required: user_action_id int;\n* action.type=3; required: user_action_id int, count float;",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserActions"
                 ],
                 "summary": "Сделал action",
                 "parameters": [
@@ -88,13 +161,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagModel.AccessCreateResponse"
+                            "$ref": "#/definitions/defaultModel.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
                         }
                     }
                 }
             }
         },
-        "/action/{id}": {
+        "/userAction/{id}": {
             "delete": {
                 "security": [
                     {
@@ -109,7 +194,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Actions"
+                    "UserActions"
                 ],
                 "summary": "Удалить userAction",
                 "parameters": [
@@ -121,10 +206,29 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                        }
+                    }
+                }
             }
         },
-        "/action/{id}/stats": {
+        "/userAction/{id}/stats": {
             "get": {
                 "security": [
                     {
@@ -139,9 +243,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Actions"
+                    "UserActions"
                 ],
-                "summary": "Получить статитсику",
+                "summary": "Получить статистику",
                 "parameters": [
                     {
                         "type": "string",
@@ -175,14 +279,26 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/logModel.Log"
+                                "$ref": "#/definitions/logModel.GetStatsResponse"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
                         }
                     }
                 }
             }
         },
-        "/actions/my": {
+        "/userActions/my": {
             "get": {
                 "security": [
                     {
@@ -197,7 +313,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Actions"
+                    "UserActions"
                 ],
                 "summary": "Получить мои actions",
                 "parameters": [
@@ -205,6 +321,12 @@ const docTemplate = `{
                         "type": "boolean",
                         "description": "deleted",
                         "name": "deleted",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "field[eq]",
+                        "name": "order",
                         "in": "query"
                     }
                 ],
@@ -214,13 +336,74 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "object",
-                                "properties": {
-                                    "action": {
-                                        "$ref": "#/definitions/actionModel.Action"
-                                    }
-                                }
+                                "$ref": "#/definitions/userActionModel.MyActionsResponse"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/userActions/my/active": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Получить мои активные actions с типом интервал по токену",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserActions"
+                ],
+                "summary": "Получить мои активные actions с типом интервал",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "deleted",
+                        "name": "deleted",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "field[eq]",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/userActionModel.MyActiveActions"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
                         }
                     }
                 }
@@ -236,6 +419,18 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "subtype": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "unit": {
+                    "type": "integer"
+                },
+                "unit_info": {
+                    "$ref": "#/definitions/unitModel.Unit"
                 }
             }
         },
@@ -244,13 +439,70 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string"
+                },
+                "subtype": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "unit": {
+                    "type": "integer"
+                }
+            }
+        },
+        "defaultModel.FailedResponse": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string"
+                }
+            }
+        },
+        "defaultModel.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string"
                 }
             }
         },
         "logModel.CreateLogRequest": {
             "type": "object",
             "properties": {
-                "action_id": {
+                "count": {
+                    "type": "number"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "start_start": {
+                    "type": "string"
+                },
+                "user_action_id": {
+                    "type": "integer"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "logModel.GetStatsResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "$ref": "#/definitions/actionModel.Action"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "stats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/logModel.Log"
+                    }
+                },
+                "user_action_id": {
                     "type": "integer"
                 }
             }
@@ -258,8 +510,11 @@ const docTemplate = `{
         "logModel.Log": {
             "type": "object",
             "properties": {
-                "action_id": {
-                    "type": "integer"
+                "count": {
+                    "type": "number"
+                },
+                "end_time": {
+                    "type": "string"
                 },
                 "id": {
                     "type": "integer"
@@ -267,15 +522,120 @@ const docTemplate = `{
                 "log_date": {
                     "type": "string"
                 },
+                "start_time": {
+                    "type": "string"
+                },
+                "user_action_id": {
+                    "type": "integer"
+                },
                 "user_id": {
                     "type": "integer"
+                },
+                "value": {
+                    "type": "string"
                 }
             }
         },
-        "swagModel.AccessCreateResponse": {
+        "typeInfoModel.TypeInfoResponse": {
             "type": "object",
             "properties": {
-                "detail": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sub_type": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "description": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "unitModel.Unit": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "userActionModel.MyActionsResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "integer"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "subtype": {
+                            "type": "integer"
+                        },
+                        "type": {
+                            "type": "integer"
+                        },
+                        "unit_info": {
+                            "type": "object",
+                            "properties": {
+                                "description": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "deleted": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/logModel.Log"
+                    }
+                }
+            }
+        },
+        "userActionModel.MyActiveActions": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "$ref": "#/definitions/actionModel.Action"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "start_time": {
                     "type": "string"
                 }
             }
@@ -293,10 +653,10 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0.0",
-	Host:             ":8080",
+	Host:             "",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Pood",
+	Title:            "Pood - just pood)",
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

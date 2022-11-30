@@ -1,21 +1,41 @@
 package userActionModel
 
 import (
-	"Pood/app/models/actionModel"
-	"Pood/app/models/logModel"
-	"Pood/app/models/userModel"
+	"pood/v2/app/models/actionModel"
+	"pood/v2/app/models/logModel"
+	"pood/v2/app/models/userModel"
+	"time"
 )
 
 type UserAction struct {
 	ID       uint                `json:"id" gorm:"primaryKey"`
-	UserId   uint                `json:"_"`
+	UserId   uint                `json:"user_id"`
 	User     *userModel.User     `json:"user"`
-	ActionId uint                `json:"_"`
+	ActionId uint                `json:"action_id"`
 	Action   *actionModel.Action `json:"action"`
-	History  []*logModel.Log     `json:"history" gorm:"foreignKey:ActionId"`
 	Deleted  bool                `json:"deleted" gorm:"default:0"`
+	Logs     []logModel.Log      `json:"logs" gorm:"foreignKey:UserActionId"`
 }
 
-type MyActionsResponse []struct {
-	Action actionModel.Action `json:"action"`
+type MyActionsResponse struct {
+	ID     uint `json:"id"`
+	UserId uint `json:"-"`
+	Action struct {
+		ID       uint   `json:"id" gorm:"primaryKey"`
+		Name     string `json:"name"`
+		Type     uint   `json:"type"`
+		Subtype  uint   `json:"subtype"`
+		UnitInfo struct {
+			Name        string `json:"name"`
+			Description string `json:"description"`
+		} `json:"unit_info"`
+	} `json:"action"`
+	Deleted bool            `json:"deleted"`
+	Logs    []*logModel.Log `json:"logs"`
+}
+
+type MyActiveActions struct {
+	ID        uint               `json:"id"`
+	Action    actionModel.Action `json:"action"`
+	StartTime time.Time          `json:"start_time"`
 }

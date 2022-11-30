@@ -1,15 +1,19 @@
 package config
 
 import (
-	"Pood/app/models/actionModel"
-	"Pood/app/models/logModel"
-	"Pood/app/models/tokenModel"
-	"Pood/app/models/userActionModel"
-	"Pood/app/models/userModel"
 	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"log"
 	"os"
+	"pood/v2/app/models/actionModel"
+	"pood/v2/app/models/logModel"
+	"pood/v2/app/models/subTypeInfoModel"
+	"pood/v2/app/models/tokenModel"
+	"pood/v2/app/models/typeInfoModel"
+	"pood/v2/app/models/unitModel"
+	"pood/v2/app/models/userActionModel"
+	"pood/v2/app/models/userModel"
 )
 
 var Db *gorm.DB
@@ -22,11 +26,13 @@ func initDatabase() bool {
 	mysqlHost, _ := os.LookupEnv("MYSQL_HOST")
 	mysqlPort, _ := os.LookupEnv("MYSQL_PORT")
 	mysqlDbName, _ := os.LookupEnv("MYSQL_DB_NAME")
+	//dbDriver, _ := os.LookupEnv("DB_DRIVER")
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True", mysqlUserName, mysqlPassword, mysqlHost, mysqlPort, mysqlDbName)
-	Db, err = gorm.Open(
-		mysql.Open(dsn),
-		&gorm.Config{})
+	//dsn := fmt.Sprintf("%s://%s:%s@%s:%s/%s", dbDriver, mysqlUserName, mysqlPassword, mysqlHost, mysqlPort, mysqlDbName)
+	log.Println(dsn)
+
+	Db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	Db = Db.Debug()
 
@@ -46,6 +52,9 @@ func initMigrations() bool {
 		userActionModel.UserAction{},
 		logModel.Log{},
 		tokenModel.Token{},
+		typeInfoModel.TypeInfo{},
+		subTypeInfoModel.SubTypeInfo{},
+		unitModel.Unit{},
 	)
 
 	if err != nil {

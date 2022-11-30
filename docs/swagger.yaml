@@ -6,37 +6,151 @@ definitions:
         type: integer
       name:
         type: string
+      subtype:
+        type: integer
+      type:
+        type: integer
+      unit:
+        type: integer
+      unit_info:
+        $ref: '#/definitions/unitModel.Unit'
     type: object
   actionModel.ActionCreateRequest:
     properties:
       name:
         type: string
-    type: object
-  logModel.CreateLogRequest:
-    properties:
-      action_id:
+      subtype:
+        type: integer
+      type:
+        type: integer
+      unit:
         type: integer
     type: object
-  logModel.Log:
-    properties:
-      action_id:
-        type: integer
-      id:
-        type: integer
-      log_date:
-        type: string
-      user_id:
-        type: integer
-    type: object
-  swagModel.AccessCreateResponse:
+  defaultModel.FailedResponse:
     properties:
       detail:
         type: string
     type: object
-host: localhost:8080
+  defaultModel.SuccessResponse:
+    properties:
+      detail:
+        type: string
+    type: object
+  logModel.CreateLogRequest:
+    properties:
+      count:
+        type: number
+      end_time:
+        type: string
+      start_start:
+        type: string
+      user_action_id:
+        type: integer
+      value:
+        type: string
+    type: object
+  logModel.GetStatsResponse:
+    properties:
+      action:
+        $ref: '#/definitions/actionModel.Action'
+      count:
+        type: integer
+      stats:
+        items:
+          $ref: '#/definitions/logModel.Log'
+        type: array
+      user_action_id:
+        type: integer
+    type: object
+  logModel.Log:
+    properties:
+      count:
+        type: number
+      end_time:
+        type: string
+      id:
+        type: integer
+      log_date:
+        type: string
+      start_time:
+        type: string
+      user_action_id:
+        type: integer
+      user_id:
+        type: integer
+      value:
+        type: string
+    type: object
+  typeInfoModel.TypeInfoResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      sub_type:
+        items:
+          properties:
+            description:
+              type: string
+            id:
+              type: integer
+            name:
+              type: string
+          type: object
+        type: array
+    type: object
+  unitModel.Unit:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  userActionModel.MyActionsResponse:
+    properties:
+      action:
+        properties:
+          id:
+            type: integer
+          name:
+            type: string
+          subtype:
+            type: integer
+          type:
+            type: integer
+          unit_info:
+            properties:
+              description:
+                type: string
+              name:
+                type: string
+            type: object
+        type: object
+      deleted:
+        type: boolean
+      id:
+        type: integer
+      logs:
+        items:
+          $ref: '#/definitions/logModel.Log'
+        type: array
+    type: object
+  userActionModel.MyActiveActions:
+    properties:
+      action:
+        $ref: '#/definitions/actionModel.Action'
+      id:
+        type: integer
+      start_time:
+        type: string
+    type: object
 info:
   contact: {}
-  title: Pood
+  title: Pood - just pood)
   version: 1.0.0
 paths:
   /action:
@@ -54,16 +168,61 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            $ref: '#/definitions/swagModel.AccessCreateResponse'
+            $ref: '#/definitions/defaultModel.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
       security:
       - ApiKeyAuth: []
       summary: Создать новый action
       tags:
       - Actions
-  /action/{id}:
+  /typeInfo:
+    get:
+      consumes:
+      - application/json
+      description: Получить описание типов и вложеннымх в него сабтипов
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/typeInfoModel.TypeInfoResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получить информацию по типам
+      tags:
+      - TypeInfo
+  /unitInfo:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/unitModel.Unit'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Единицы измерения
+      tags:
+      - TypeInfo
+  /userAction/{id}:
     delete:
       consumes:
       - application/json
@@ -76,13 +235,25 @@ paths:
         type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/defaultModel.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
       security:
       - ApiKeyAuth: []
       summary: Удалить userAction
       tags:
-      - Actions
-  /action/{id}/stats:
+      - UserActions
+  /userAction/{id}/stats:
     get:
       consumes:
       - application/json
@@ -112,18 +283,29 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/logModel.Log'
+              $ref: '#/definitions/logModel.GetStatsResponse'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
       security:
       - ApiKeyAuth: []
-      summary: Получить статитсику
+      summary: Получить статистику
       tags:
-      - Actions
-  /action/done:
+      - UserActions
+  /userAction/done:
     post:
       consumes:
       - application/json
-      description: Создать лог совершенного action по токену
+      description: |-
+        * action.type=1; required: user_action_id int;
+        * action.type=2; required: user_action_id int;
+        * action.type=3; required: user_action_id int, count float;
       parameters:
       - description: body
         in: body
@@ -137,13 +319,21 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/swagModel.AccessCreateResponse'
+            $ref: '#/definitions/defaultModel.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
       security:
       - ApiKeyAuth: []
       summary: Сделал action
       tags:
-      - Actions
-  /actions/my:
+      - UserActions
+  /userActions/my:
     get:
       consumes:
       - application/json
@@ -153,6 +343,10 @@ paths:
         in: query
         name: deleted
         type: boolean
+      - description: field[eq]
+        in: query
+        name: order
+        type: string
       produces:
       - application/json
       responses:
@@ -160,16 +354,55 @@ paths:
           description: OK
           schema:
             items:
-              properties:
-                action:
-                  $ref: '#/definitions/actionModel.Action'
-              type: object
+              $ref: '#/definitions/userActionModel.MyActionsResponse'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
       security:
       - ApiKeyAuth: []
       summary: Получить мои actions
       tags:
-      - Actions
+      - UserActions
+  /userActions/my/active:
+    get:
+      consumes:
+      - application/json
+      description: Получить мои активные actions с типом интервал по токену
+      parameters:
+      - description: deleted
+        in: query
+        name: deleted
+        type: boolean
+      - description: field[eq]
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/userActionModel.MyActiveActions'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получить мои активные actions с типом интервал
+      tags:
+      - UserActions
 securityDefinitions:
   ApiKeyAuth:
     in: header

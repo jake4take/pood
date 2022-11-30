@@ -1,11 +1,11 @@
 package userController
 
 import (
-	"Pood/app/models/tokenModel"
-	"Pood/app/models/userModel"
-	"Pood/config"
 	"errors"
 	"fmt"
+	"pood/v2/app/models/tokenModel"
+	"pood/v2/app/models/userModel"
+	"pood/v2/config"
 )
 
 type UserController struct{}
