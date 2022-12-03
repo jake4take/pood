@@ -15,8 +15,10 @@ func apiRouter(f fiber.Router) {
 	appController := initializationController()
 
 	action := f.Group("/action")
+	actions := f.Group("/actions")
 	{
 		action.Post("", appController.ActionController.CreateMyAction)
+		actions.Get("", appController.ActionController.FindActionByName)
 	}
 
 	userActions := f.Group("/userActions")
@@ -28,8 +30,9 @@ func apiRouter(f fiber.Router) {
 	userAction := f.Group("/userAction")
 	{
 		userAction.Delete("/:id", appController.UserActionController.DeleteAction)
-		userAction.Post("/done", appController.UserActionController.Done)
+		userAction.Post("/:id/done", appController.UserActionController.Done)
 		userAction.Get("/:id/stats", appController.UserActionController.GetStats)
+		userAction.Put("/:id/private", appController.UserActionController.UpdatePrivateUserAction)
 	}
 
 	typeInfo := f.Group("/typeInfo")
@@ -37,6 +40,11 @@ func apiRouter(f fiber.Router) {
 	{
 		typeInfo.Get("/", appController.TypeInfoController.GetTypeInfo)
 		units.Get("/", appController.UnitController.GetUnits)
+	}
+
+	user := f.Group("/user")
+	{
+		user.Get("/:id/actions", appController.UserController.GetUserActionByUser)
 	}
 
 }

@@ -2,13 +2,13 @@ package userActionController
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"pood/v2/app/controllers/userActionController/activeActionsService"
 	"pood/v2/app/controllers/userActionController/deletedActionService"
 	"pood/v2/app/controllers/userActionController/doneActionService"
 	"pood/v2/app/controllers/userActionController/getMyActionService"
 	"pood/v2/app/controllers/userActionController/getStatsService"
+	"pood/v2/app/controllers/userActionController/updateUserActionService"
 	"pood/v2/app/models/logModel"
 	"pood/v2/app/models/userActionModel"
 	"pood/v2/app/services/queryService"
@@ -84,7 +84,6 @@ func (UserActionController) DeleteAction(c *fiber.Ctx) error {
 	}
 
 	userActionId, err := strconv.Atoi(c.Params("id", "0"))
-	fmt.Println(userActionId)
 	if err != nil || userActionId == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"detail": "action not found",
@@ -93,7 +92,6 @@ func (UserActionController) DeleteAction(c *fiber.Ctx) error {
 
 	err = deletedActionService.DeleteUserAction(userActionModel.UserAction{ID: uint(userActionId)})
 	if err != nil {
-		fmt.Println(userActionId, err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"detail": "action not delete",
 		})
@@ -106,9 +104,9 @@ func (UserActionController) DeleteAction(c *fiber.Ctx) error {
 
 // Done
 // @Summary Сделал action
-// @Description * action.type=1; required: user_action_id int;
-// @Description * action.type=2; required: user_action_id int;
-// @Description * action.type=3; required: user_action_id int, count float;
+// @Description **action.type=1**; **required**: user_action_id *int*; **not required**: description *string*;
+// @Description **action.type=2**; **required**: user_action_id *int*; **not required**: description *string*;
+// @Description **action.type=3**; **required**: user_action_id *int*, count *float*; **not required**: description *string*;
 // @Accept  json
 // @Produce json
 // @Tags    UserActions
@@ -116,7 +114,7 @@ func (UserActionController) DeleteAction(c *fiber.Ctx) error {
 // @Success 200 {object} defaultModel.SuccessResponse
 // @Failure 400 {object} defaultModel.FailedResponse
 // @Failure 401 {object} defaultModel.FailedResponse
-// @Router  /userAction/done [post]
+// @Router  /userAction/{id}/done [post]
 // @Security ApiKeyAuth
 func (UserActionController) Done(c *fiber.Ctx) error {
 	user, err := tokenService.CheckToken(c)
@@ -124,6 +122,15 @@ func (UserActionController) Done(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"detail": err.Error(),
 		})
+	}
+
+	id, err := strconv.Atoi(c.Params("id", "0"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": err.Error()})
+	}
+
+	if id == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": "id is required"})
 	}
 
 	var request logModel.CreateLogRequest
@@ -145,13 +152,7 @@ func (UserActionController) Done(c *fiber.Ctx) error {
 
 	actionLog.UserId = user.ID
 
-	if request.UserActionId == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"detail": "user_action is required parameter",
-		})
-	}
-
-	userAction, err := doneActionService.HaveUserAction(userActionModel.UserAction{ID: request.UserActionId})
+	userAction, err := doneActionService.HaveUserAction(userActionModel.UserAction{ID: uint(id)})
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"detail": "user not have action",
@@ -205,6 +206,7 @@ func (UserActionController) GetStats(c *fiber.Ctx) error {
 
 	var response logModel.GetStatsResponse
 	db.Where(logModel.Log{UserActionId: uint(userActionId), UserId: user.ID}).
+		Order("id desc").
 		Find(&response.Stats)
 
 	userAction := getStatsService.GetUserAction(userActionModel.UserAction{ID: uint(userActionId)})
@@ -245,13 +247,66 @@ func (UserActionController) ActiveUserActions(c *fiber.Ctx) error {
 	for _, item := range userActions {
 		if len(item.Logs) != 0 {
 			newItem := userActionModel.MyActiveActions{
-				ID:        item.ID,
-				Action:    *item.Action,
-				StartTime: *item.Logs[0].StartTime,
+				ID:          item.ID,
+				Action:      *item.Action,
+				StartTime:   *item.Logs[0].StartTime,
+				Description: item.Logs[0].Description,
 			}
 			activeAction = append(activeAction, newItem)
 		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"data": activeAction})
+}
+
+// UpdatePrivateUserAction
+// @Summary Редактировать userAction
+// @Description Редактировать userAction по id по токену
+// @Accept  json
+// @Produce json
+// @Tags    UserActions
+// @Success 200 {object} defaultModel.SuccessResponse
+// @Failure 400 {object} defaultModel.FailedResponse
+// @Failure 401 {object} defaultModel.FailedResponse
+// @Param id path string true "id"
+// @Param body body userActionModel.UpdateRequest true "body"
+// @Router  /userAction/{id}/private [put]
+// @Security ApiKeyAuth
+func (UserActionController) UpdatePrivateUserAction(c *fiber.Ctx) error {
+	user, err := tokenService.CheckToken(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"detail": err.Error()})
+	}
+
+	userActionId, err := strconv.Atoi(c.Params("id", "0"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": err.Error()})
+	}
+	if userActionId == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": "id is required"})
+	}
+
+	userAction, err := updateUserActionService.GetUserActionById(userActionModel.UserAction{ID: uint(userActionId), UserId: user.ID})
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": "user has not this user_action"})
+	}
+
+	var request userActionModel.UpdateRequest
+	err = json.Unmarshal(c.Body(), &request)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": err.Error()})
+	}
+
+	if request.Private == nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": "private is required body parameter"})
+	}
+
+	userAction.Private = *request.Private
+
+	err = updateUserActionService.UpdateUserActionPrivateStatus(userAction)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": err.Error()})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"data": "private status updated"})
 }

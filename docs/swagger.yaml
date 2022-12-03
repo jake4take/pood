@@ -17,6 +17,8 @@ definitions:
     type: object
   actionModel.ActionCreateRequest:
     properties:
+      id:
+        type: integer
       name:
         type: string
       subtype:
@@ -40,12 +42,12 @@ definitions:
     properties:
       count:
         type: number
+      description:
+        type: string
       end_time:
         type: string
       start_start:
         type: string
-      user_action_id:
-        type: integer
       value:
         type: string
     type: object
@@ -66,6 +68,8 @@ definitions:
     properties:
       count:
         type: number
+      description:
+        type: string
       end_time:
         type: string
       id:
@@ -124,8 +128,6 @@ definitions:
             type: integer
           unit_info:
             properties:
-              description:
-                type: string
               name:
                 type: string
             type: object
@@ -134,19 +136,47 @@ definitions:
         type: boolean
       id:
         type: integer
-      logs:
-        items:
-          $ref: '#/definitions/logModel.Log'
-        type: array
+      private:
+        type: boolean
     type: object
   userActionModel.MyActiveActions:
     properties:
       action:
         $ref: '#/definitions/actionModel.Action'
+      description:
+        type: string
       id:
         type: integer
       start_time:
         type: string
+    type: object
+  userActionModel.UpdateRequest:
+    properties:
+      private:
+        type: boolean
+    type: object
+  userActionModel.UserActionsResponse:
+    properties:
+      action:
+        properties:
+          id:
+            type: integer
+          name:
+            type: string
+          subtype:
+            type: integer
+          type:
+            type: integer
+          unit_info:
+            properties:
+              name:
+                type: string
+            type: object
+        type: object
+      id:
+        type: integer
+      user_id:
+        type: integer
     type: object
 info:
   contact: {}
@@ -157,7 +187,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Создать новый action и привязаться к нему по токену
+      description: |-
+        Создать новый action и привязаться к нему по токену
+        - привязка по **id** или создание по остальным полям
       parameters:
       - description: body
         in: body
@@ -179,6 +211,34 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Создать новый action
+      tags:
+      - Actions
+  /actions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: name
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/actionModel.Action'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Найти action по неполному совпадению имени
       tags:
       - Actions
   /typeInfo:
@@ -222,6 +282,39 @@ paths:
       summary: Единицы измерения
       tags:
       - TypeInfo
+  /user/{id}/actions:
+    get:
+      consumes:
+      - application/json
+      description: Получить userActions юзера (private=false) по id
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/userActionModel.UserActionsResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получить userActions юзера (private=false)
+      tags:
+      - Users
   /userAction/{id}:
     delete:
       consumes:
@@ -251,6 +344,78 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Удалить userAction
+      tags:
+      - UserActions
+  /userAction/{id}/done:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        **action.type=1**; **required**: user_action_id *int*; **not required**: description *string*;
+        **action.type=2**; **required**: user_action_id *int*; **not required**: description *string*;
+        **action.type=3**; **required**: user_action_id *int*, count *float*; **not required**: description *string*;
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/logModel.CreateLogRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/defaultModel.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Сделал action
+      tags:
+      - UserActions
+  /userAction/{id}/private:
+    put:
+      consumes:
+      - application/json
+      description: Редактировать userAction по id по токену
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/userActionModel.UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/defaultModel.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/defaultModel.FailedResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Редактировать userAction
       tags:
       - UserActions
   /userAction/{id}/stats:
@@ -296,41 +461,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Получить статистику
-      tags:
-      - UserActions
-  /userAction/done:
-    post:
-      consumes:
-      - application/json
-      description: |-
-        * action.type=1; required: user_action_id int;
-        * action.type=2; required: user_action_id int;
-        * action.type=3; required: user_action_id int, count float;
-      parameters:
-      - description: body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/logModel.CreateLogRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/defaultModel.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Сделал action
       tags:
       - UserActions
   /userActions/my:

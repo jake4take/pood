@@ -3,7 +3,7 @@ package tokenService
 import (
 	"errors"
 	"github.com/gofiber/fiber/v2"
-	"pood/v2/app/controllers/userController"
+	"pood/v2/app/controllers/userActionController/authorizationsService"
 	"pood/v2/app/models/tokenModel"
 	"pood/v2/app/models/userModel"
 	"pood/v2/config"
@@ -26,7 +26,7 @@ func CheckToken(c *fiber.Ctx) (*userModel.User, error) {
 		return nil, err
 	}
 
-	user, err := userController.GetUserByToken(*token)
+	user, err := authorizationsService.GetUserByToken(*token)
 	if err != nil {
 		return nil, err
 	}

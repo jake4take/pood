@@ -15,6 +15,7 @@ type UserAction struct {
 	Action   *actionModel.Action `json:"action"`
 	Deleted  bool                `json:"deleted" gorm:"default:0"`
 	Logs     []logModel.Log      `json:"logs" gorm:"foreignKey:UserActionId"`
+	Private  bool                `json:"private" gorm:"default:true"`
 }
 
 type MyActionsResponse struct {
@@ -26,16 +27,34 @@ type MyActionsResponse struct {
 		Type     uint   `json:"type"`
 		Subtype  uint   `json:"subtype"`
 		UnitInfo struct {
-			Name        string `json:"name"`
-			Description string `json:"description"`
+			Name string `json:"name"`
 		} `json:"unit_info"`
 	} `json:"action"`
-	Deleted bool            `json:"deleted"`
-	Logs    []*logModel.Log `json:"logs"`
+	Deleted bool `json:"deleted"`
+	Private bool `json:"private"`
 }
 
 type MyActiveActions struct {
-	ID        uint               `json:"id"`
-	Action    actionModel.Action `json:"action"`
-	StartTime time.Time          `json:"start_time"`
+	ID          uint               `json:"id"`
+	Action      actionModel.Action `json:"action"`
+	StartTime   time.Time          `json:"start_time"`
+	Description *string            `json:"description"`
+}
+
+type UpdateRequest struct {
+	Private *bool `json:"private"`
+}
+
+type UserActionsResponse struct {
+	ID     uint `json:"id"`
+	UserId uint `json:"user_id"`
+	Action struct {
+		ID       uint   `json:"id" gorm:"primaryKey"`
+		Name     string `json:"name"`
+		Type     uint   `json:"type"`
+		Subtype  uint   `json:"subtype"`
+		UnitInfo struct {
+			Name string `json:"name"`
+		} `json:"unit_info"`
+	} `json:"action"`
 }

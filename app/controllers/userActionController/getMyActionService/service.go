@@ -9,7 +9,9 @@ import (
 func GetUserActions(db *gorm.DB, user userModel.User) (actions []userActionModel.UserAction, err error) {
 	err = db.Preload("Action").
 		Preload("Action.UnitInfo").
-		Preload("Logs").
+		//Preload("Logs", func(db *gorm.DB) *gorm.DB {
+		//	return db.Order("id DESC")
+		//}).
 		Where(userActionModel.UserAction{UserId: user.ID}).
 		Find(&actions).Error
 	if err != nil {

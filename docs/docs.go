@@ -23,7 +23,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Создать новый action и привязаться к нему по токену",
+                "description": "Создать новый action и привязаться к нему по токену\n- привязка по **id** или создание по остальным полям",
                 "consumes": [
                     "application/json"
                 ],
@@ -50,6 +50,51 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/defaultModel.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/actions": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Actions"
+                ],
+                "summary": "Найти action по неполному совпадению имени",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/actionModel.Action"
+                            }
                         }
                     },
                     "401": {
@@ -128,14 +173,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/userAction/done": {
-            "post": {
+        "/user/{id}/actions": {
+            "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "* action.type=1; required: user_action_id int;\n* action.type=2; required: user_action_id int;\n* action.type=3; required: user_action_id int, count float;",
+                "description": "Получить userActions юзера (private=false) по id",
                 "consumes": [
                     "application/json"
                 ],
@@ -143,25 +188,26 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserActions"
+                    "Users"
                 ],
-                "summary": "Сделал action",
+                "summary": "Получить userActions юзера (private=false)",
                 "parameters": [
                     {
-                        "description": "body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/logModel.CreateLogRequest"
-                        }
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.SuccessResponse"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/userActionModel.UserActionsResponse"
+                            }
                         }
                     },
                     "400": {
@@ -209,6 +255,115 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/userAction/{id}/done": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "**action.type=1**; **required**: user_action_id *int*; **not required**: description *string*;\n**action.type=2**; **required**: user_action_id *int*; **not required**: description *string*;\n**action.type=3**; **required**: user_action_id *int*, count *float*; **not required**: description *string*;",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserActions"
+                ],
+                "summary": "Сделал action",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/logModel.CreateLogRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/userAction/{id}/private": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Редактировать userAction по id по токену",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserActions"
+                ],
+                "summary": "Редактировать userAction",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/userActionModel.UpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/defaultModel.SuccessResponse"
                         }
@@ -437,6 +592,9 @@ const docTemplate = `{
         "actionModel.ActionCreateRequest": {
             "type": "object",
             "properties": {
+                "id": {
+                    "type": "integer"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -473,14 +631,14 @@ const docTemplate = `{
                 "count": {
                     "type": "number"
                 },
+                "description": {
+                    "type": "string"
+                },
                 "end_time": {
                     "type": "string"
                 },
                 "start_start": {
                     "type": "string"
-                },
-                "user_action_id": {
-                    "type": "integer"
                 },
                 "value": {
                     "type": "string"
@@ -512,6 +670,9 @@ const docTemplate = `{
             "properties": {
                 "count": {
                     "type": "number"
+                },
+                "description": {
+                    "type": "string"
                 },
                 "end_time": {
                     "type": "string"
@@ -602,9 +763,6 @@ const docTemplate = `{
                         "unit_info": {
                             "type": "object",
                             "properties": {
-                                "description": {
-                                    "type": "string"
-                                },
                                 "name": {
                                     "type": "string"
                                 }
@@ -618,11 +776,8 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "logs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/logModel.Log"
-                    }
+                "private": {
+                    "type": "boolean"
                 }
             }
         },
@@ -632,11 +787,58 @@ const docTemplate = `{
                 "action": {
                     "$ref": "#/definitions/actionModel.Action"
                 },
+                "description": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "start_time": {
                     "type": "string"
+                }
+            }
+        },
+        "userActionModel.UpdateRequest": {
+            "type": "object",
+            "properties": {
+                "private": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "userActionModel.UserActionsResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "integer"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "subtype": {
+                            "type": "integer"
+                        },
+                        "type": {
+                            "type": "integer"
+                        },
+                        "unit_info": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         }

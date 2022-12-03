@@ -14,14 +14,15 @@ type Log struct {
 	StartTime    *time.Time `json:"start_time"`
 	EndTime      *time.Time `json:"end_time"`
 	Count        *float64   `json:"count"`
+	Description  *string    `json:"description"`
 }
 
 type CreateLogRequest struct {
-	UserActionId uint       `json:"user_action_id"`
-	Value        *string    `json:"value"`
-	StartTime    *time.Time `json:"start_start"`
-	EndTime      *time.Time `json:"end_time"`
-	Count        *float64   `json:"count"`
+	Value       *string    `json:"value"`
+	StartTime   *time.Time `json:"start_start"`
+	EndTime     *time.Time `json:"end_time"`
+	Count       *float64   `json:"count"`
+	Description *string    `json:"description"`
 }
 
 type GetStatsResponse struct {
