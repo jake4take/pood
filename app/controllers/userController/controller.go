@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gofiber/fiber/v2"
 	"pood/v2/app/controllers/userController/getUserActionsByUserService"
-	"pood/v2/app/models/userActionModel"
-	"pood/v2/app/models/userModel"
+	"pood/v2/app/models"
 	"pood/v2/app/services/tokenService"
 	"strconv"
 )
@@ -22,9 +21,9 @@ func NewUserController() *UserController {
 // @Accept  json
 // @Produce json
 // @Tags    Users
-// @Success 200 {array} userActionModel.UserActionsResponse
-// @Failure 400 {object} defaultModel.FailedResponse
-// @Failure 401 {object} defaultModel.FailedResponse
+// @Success 200 {array} models.UserActionsResponse
+// @Failure 400 {object} models.FailedResponse
+// @Failure 401 {object} models.FailedResponse
 // @Param id path string true "id"
 // @Router  /user/{id}/actions [get]
 // @Security ApiKeyAuth
@@ -42,7 +41,7 @@ func (UserController) GetUserActionByUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": "parameter id is incorrect"})
 	}
 
-	friend, err := getUserActionsByUserService.FindUserById(userModel.User{ID: uint(reqId)})
+	friend, err := getUserActionsByUserService.FindUserById(models.User{ID: uint(reqId)})
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": err.Error()})
 	}
@@ -57,7 +56,7 @@ func (UserController) GetUserActionByUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": err.Error()})
 	}
 
-	var response []userActionModel.UserActionsResponse
+	var response []models.UserActionsResponse
 	err = json.Unmarshal(data, &response)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"detail": err.Error()})

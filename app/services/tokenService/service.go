@@ -4,12 +4,11 @@ import (
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"pood/v2/app/controllers/userActionController/authorizationsService"
-	"pood/v2/app/models/tokenModel"
-	"pood/v2/app/models/userModel"
+	"pood/v2/app/models"
 	"pood/v2/config"
 )
 
-func CheckToken(c *fiber.Ctx) (*userModel.User, error) {
+func CheckToken(c *fiber.Ctx) (*models.User, error) {
 	fullToken := c.GetReqHeaders()["Authorization"]
 
 	if fullToken == "" {
@@ -34,10 +33,10 @@ func CheckToken(c *fiber.Ctx) (*userModel.User, error) {
 	return user, nil
 }
 
-func GetToken(token string) (*tokenModel.Token, error) {
-	var resp tokenModel.Token
+func GetToken(token string) (*models.Token, error) {
+	var resp models.Token
 	err := config.Db.
-		Where(tokenModel.Token{Token: token}).
+		Where(models.Token{Token: token}).
 		First(&resp).
 		Error
 

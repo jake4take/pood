@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"pood/v2/app/controllers/actionController"
+	"pood/v2/app/controllers/fileController"
 	"pood/v2/app/controllers/logController"
 	"pood/v2/app/controllers/typeInfoController"
 	"pood/v2/app/controllers/unitController"
@@ -16,4 +17,5 @@ type Controller struct {
 	LogController        *logController.LogController
 	TypeInfoController   *typeInfoController.TypeInfoController
 	UnitController       *unitController.UnitController
+	FileController       *fileController.FileController
 }

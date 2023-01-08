@@ -6,14 +6,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"os"
-	"pood/v2/app/models/actionModel"
-	"pood/v2/app/models/logModel"
-	"pood/v2/app/models/subTypeInfoModel"
-	"pood/v2/app/models/tokenModel"
-	"pood/v2/app/models/typeInfoModel"
-	"pood/v2/app/models/unitModel"
-	"pood/v2/app/models/userActionModel"
-	"pood/v2/app/models/userModel"
+	"pood/v2/app/models"
 )
 
 var Db *gorm.DB
@@ -47,14 +40,15 @@ func initDatabase() bool {
 
 func initMigrations() bool {
 	err := Db.AutoMigrate(
-		userModel.User{},
-		actionModel.Action{},
-		userActionModel.UserAction{},
-		logModel.Log{},
-		tokenModel.Token{},
-		typeInfoModel.TypeInfo{},
-		subTypeInfoModel.SubTypeInfo{},
-		unitModel.Unit{},
+		models.User{},
+		models.Action{},
+		models.UserAction{},
+		models.Log{},
+		models.Token{},
+		models.TypeInfo{},
+		models.SubTypeInfo{},
+		models.Unit{},
+		models.File{},
 	)
 
 	if err != nil {

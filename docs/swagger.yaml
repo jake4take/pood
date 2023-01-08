@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  actionModel.Action:
+  models.Action:
     properties:
       id:
         type: integer
@@ -8,14 +8,16 @@ definitions:
         type: string
       subtype:
         type: integer
+      template:
+        type: boolean
       type:
         type: integer
       unit:
         type: integer
       unit_info:
-        $ref: '#/definitions/unitModel.Unit'
+        $ref: '#/definitions/models.Unit'
     type: object
-  actionModel.ActionCreateRequest:
+  models.ActionCreateRequest:
     properties:
       id:
         type: integer
@@ -23,22 +25,25 @@ definitions:
         type: string
       subtype:
         type: integer
+      template:
+        type: boolean
       type:
         type: integer
       unit:
         type: integer
     type: object
-  defaultModel.FailedResponse:
+  models.CreateFileResponse:
     properties:
-      detail:
+      create_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      path:
         type: string
     type: object
-  defaultModel.SuccessResponse:
-    properties:
-      detail:
-        type: string
-    type: object
-  logModel.CreateLogRequest:
+  models.CreateLogRequest:
     properties:
       count:
         type: number
@@ -46,25 +51,49 @@ definitions:
         type: string
       end_time:
         type: string
+      file_ids:
+        items:
+          type: integer
+        type: array
       start_start:
         type: string
       value:
         type: string
     type: object
-  logModel.GetStatsResponse:
+  models.FailedResponse:
+    properties:
+      detail:
+        type: string
+    type: object
+  models.File:
+    properties:
+      create_at:
+        type: string
+      delete_at:
+        type: string
+      id:
+        type: integer
+      log_id:
+        type: integer
+      name:
+        type: string
+      path:
+        type: string
+    type: object
+  models.GetStatsResponse:
     properties:
       action:
-        $ref: '#/definitions/actionModel.Action'
+        $ref: '#/definitions/models.Action'
       count:
         type: integer
       stats:
         items:
-          $ref: '#/definitions/logModel.Log'
+          $ref: '#/definitions/models.Log'
         type: array
       user_action_id:
         type: integer
     type: object
-  logModel.Log:
+  models.Log:
     properties:
       count:
         type: number
@@ -72,12 +101,18 @@ definitions:
         type: string
       end_time:
         type: string
+      files:
+        items:
+          $ref: '#/definitions/models.File'
+        type: array
       id:
         type: integer
       log_date:
         type: string
       start_time:
         type: string
+      user_action:
+        $ref: '#/definitions/models.UserAction'
       user_action_id:
         type: integer
       user_id:
@@ -85,36 +120,7 @@ definitions:
       value:
         type: string
     type: object
-  typeInfoModel.TypeInfoResponse:
-    properties:
-      description:
-        type: string
-      id:
-        type: integer
-      name:
-        type: string
-      sub_type:
-        items:
-          properties:
-            description:
-              type: string
-            id:
-              type: integer
-            name:
-              type: string
-          type: object
-        type: array
-    type: object
-  unitModel.Unit:
-    properties:
-      description:
-        type: string
-      id:
-        type: integer
-      name:
-        type: string
-    type: object
-  userActionModel.MyActionsResponse:
+  models.MyActionsResponse:
     properties:
       action:
         properties:
@@ -139,10 +145,10 @@ definitions:
       private:
         type: boolean
     type: object
-  userActionModel.MyActiveActions:
+  models.MyActiveActions:
     properties:
       action:
-        $ref: '#/definitions/actionModel.Action'
+        $ref: '#/definitions/models.Action'
       description:
         type: string
       id:
@@ -150,12 +156,97 @@ definitions:
       start_time:
         type: string
     type: object
-  userActionModel.UpdateRequest:
+  models.PutLogRequest:
+    properties:
+      count:
+        type: number
+      description:
+        type: string
+      end_time:
+        type: string
+      file_ids:
+        items:
+          type: integer
+        type: array
+      start_time:
+        type: string
+      value:
+        type: string
+    type: object
+  models.SuccessResponse:
+    properties:
+      detail:
+        type: string
+    type: object
+  models.TypeInfoResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      sub_type:
+        items:
+          properties:
+            description:
+              type: string
+            id:
+              type: integer
+            name:
+              type: string
+          type: object
+        type: array
+    type: object
+  models.Unit:
+    properties:
+      description:
+        type: string
+      first_form:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      second_form:
+        type: string
+      third_form:
+        type: string
+    type: object
+  models.UpdateRequest:
     properties:
       private:
         type: boolean
     type: object
-  userActionModel.UserActionsResponse:
+  models.User:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  models.UserAction:
+    properties:
+      action:
+        $ref: '#/definitions/models.Action'
+      action_id:
+        type: integer
+      deleted:
+        type: boolean
+      id:
+        type: integer
+      logs:
+        items:
+          $ref: '#/definitions/models.Log'
+        type: array
+      private:
+        type: boolean
+      user:
+        $ref: '#/definitions/models.User'
+      user_id:
+        type: integer
+    type: object
+  models.UserActionsResponse:
     properties:
       action:
         properties:
@@ -196,18 +287,18 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/actionModel.ActionCreateRequest'
+          $ref: '#/definitions/models.ActionCreateRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/defaultModel.SuccessResponse'
+            $ref: '#/definitions/models.SuccessResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
       security:
       - ApiKeyAuth: []
       summary: Создать новый action
@@ -221,7 +312,154 @@ paths:
       - description: name
         in: query
         name: name
+        type: string
+      - description: template
+        in: query
+        name: template
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Action'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.FailedResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Найти action по неполному совпадению имени
+      tags:
+      - Actions
+  /file:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: binary
+        in: formData
+        name: file
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CreateFileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.FailedResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Загрузить файл
+      tags:
+      - Files
+  /file/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удалить file по id
+      parameters:
+      - description: id
+        in: path
+        name: id
         required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.FailedResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.FailedResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удалить file
+      tags:
+      - Files
+  /log/{id}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.PutLogRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items:
+                properties:
+                  count:
+                    type: number
+                  description:
+                    type: string
+                  end_time:
+                    type: string
+                  files:
+                    items:
+                      $ref: '#/definitions/models.File'
+                    type: array
+                  id:
+                    type: integer
+                  log_date:
+                    type: string
+                  start_time:
+                    type: string
+                  user_action_id:
+                    type: integer
+                  value:
+                    type: string
+                type: object
+              type: array
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.FailedResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.FailedResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Изменить лог
+      tags:
+      - Logs
+  /logs/my:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: field[eq]
+        in: query
+        name: order
         type: string
       produces:
       - application/json
@@ -230,17 +468,44 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/actionModel.Action'
+              items:
+                properties:
+                  count:
+                    type: number
+                  description:
+                    type: string
+                  end_time:
+                    type: string
+                  files:
+                    items:
+                      $ref: '#/definitions/models.File'
+                    type: array
+                  id:
+                    type: integer
+                  log_date:
+                    type: string
+                  start_time:
+                    type: string
+                  user_action_id:
+                    type: integer
+                  value:
+                    type: string
+                type: object
+              type: array
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.FailedResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
       security:
       - ApiKeyAuth: []
-      summary: Найти action по неполному совпадению имени
+      summary: Получить мои действия
       tags:
-      - Actions
+      - Logs
   /typeInfo:
     get:
       consumes:
@@ -252,11 +517,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/typeInfoModel.TypeInfoResponse'
+            $ref: '#/definitions/models.TypeInfoResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
       security:
       - ApiKeyAuth: []
       summary: Получить информацию по типам
@@ -272,11 +537,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/unitModel.Unit'
+            $ref: '#/definitions/models.Unit'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
       security:
       - ApiKeyAuth: []
       summary: Единицы измерения
@@ -300,16 +565,16 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/userActionModel.UserActionsResponse'
+              $ref: '#/definitions/models.UserActionsResponse'
             type: array
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
       security:
       - ApiKeyAuth: []
       summary: Получить userActions юзера (private=false)
@@ -332,15 +597,15 @@ paths:
         "204":
           description: No Content
           schema:
-            $ref: '#/definitions/defaultModel.SuccessResponse'
+            $ref: '#/definitions/models.SuccessResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
       security:
       - ApiKeyAuth: []
       summary: Удалить userAction
@@ -350,32 +615,34 @@ paths:
     post:
       consumes:
       - application/json
-      description: |-
-        **action.type=1**; **required**: user_action_id *int*; **not required**: description *string*;
-        **action.type=2**; **required**: user_action_id *int*; **not required**: description *string*;
-        **action.type=3**; **required**: user_action_id *int*, count *float*; **not required**: description *string*;
+      description: '**If action.type = 3**, field count *float* is required;'
       parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
       - description: body
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/logModel.CreateLogRequest'
+          $ref: '#/definitions/models.CreateLogRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/defaultModel.SuccessResponse'
+            $ref: '#/definitions/models.SuccessResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
       security:
       - ApiKeyAuth: []
       summary: Сделал action
@@ -397,22 +664,22 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/userActionModel.UpdateRequest'
+          $ref: '#/definitions/models.UpdateRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/defaultModel.SuccessResponse'
+            $ref: '#/definitions/models.SuccessResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
       security:
       - ApiKeyAuth: []
       summary: Редактировать userAction
@@ -448,16 +715,16 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/logModel.GetStatsResponse'
+              $ref: '#/definitions/models.GetStatsResponse'
             type: array
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
       security:
       - ApiKeyAuth: []
       summary: Получить статистику
@@ -484,16 +751,16 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/userActionModel.MyActionsResponse'
+              $ref: '#/definitions/models.MyActionsResponse'
             type: array
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
       security:
       - ApiKeyAuth: []
       summary: Получить мои actions
@@ -519,15 +786,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/userActionModel.MyActiveActions'
+            $ref: '#/definitions/models.MyActiveActions'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/defaultModel.FailedResponse'
+            $ref: '#/definitions/models.FailedResponse'
       security:
       - ApiKeyAuth: []
       summary: Получить мои активные actions с типом интервал

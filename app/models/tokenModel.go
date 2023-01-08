@@ -1,4 +1,4 @@
-package tokenModel
+package models
 
 type Token struct {
 	ID     uint   `json:"id"`

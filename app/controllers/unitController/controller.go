@@ -2,7 +2,7 @@ package unitController
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"pood/v2/app/models/unitModel"
+	"pood/v2/app/models"
 	"pood/v2/app/services/tokenService"
 	"pood/v2/config"
 )
@@ -18,8 +18,8 @@ func NewUnitController() *UnitController {
 // @Accept  json
 // @Produce json
 // @Tags    TypeInfo
-// @Success 200 {object} unitModel.Unit
-// @Failure 401 {object} defaultModel.FailedResponse
+// @Success 200 {object} models.Unit
+// @Failure 401 {object} models.FailedResponse
 // @Router  /unitInfo [get]
 // @Security ApiKeyAuth
 func (UnitController) GetUnits(c *fiber.Ctx) error {
@@ -30,9 +30,9 @@ func (UnitController) GetUnits(c *fiber.Ctx) error {
 		})
 	}
 
-	var unit []unitModel.Unit
+	var unit []models.Unit
 	err = config.Db.
-		Model(unitModel.Unit{}).
+		Model(models.Unit{}).
 		Find(&unit).
 		Error
 

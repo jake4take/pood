@@ -1,15 +1,15 @@
 package actionTypes
 
 import (
-	"pood/v2/app/models/logModel"
+	"pood/v2/app/models"
 	"pood/v2/config"
 )
 
-func CreateLog(log logModel.Log) error {
+func CreateLog(log models.Log) (*models.Log, error) {
 	err := config.Db.Create(&log).Error
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &log, nil
 }

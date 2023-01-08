@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"pood/v2/app/controllers"
 	"pood/v2/app/controllers/actionController"
+	"pood/v2/app/controllers/fileController"
 	"pood/v2/app/controllers/logController"
 	"pood/v2/app/controllers/typeInfoController"
 	"pood/v2/app/controllers/unitController"
@@ -47,6 +48,24 @@ func apiRouter(f fiber.Router) {
 		user.Get("/:id/actions", appController.UserController.GetUserActionByUser)
 	}
 
+	logs := f.Group("/logs")
+	log := f.Group("/log")
+	{
+		logs.Get("/my", appController.LogController.GetMyLogs)
+		log.Put("/:id", appController.LogController.PutLogById)
+	}
+
+	file := f.Group("/file")
+	{
+		file.Post("/", appController.FileController.CreateNewFile)
+		file.Delete("/:id", appController.FileController.DeleteFile)
+	}
+
+	upload := f.Group("/uploads")
+	{
+		upload.Get("/:date/:name", appController.FileController.GetFile)
+	}
+
 }
 
 func initializationController() controllers.Controller {
@@ -57,5 +76,6 @@ func initializationController() controllers.Controller {
 		LogController:        logController.NewLogController(),
 		TypeInfoController:   typeInfoController.NewTypeInfoController(),
 		UnitController:       unitController.NewUnitController(),
+		FileController:       fileController.NewActionController(),
 	}
 }

@@ -3,15 +3,14 @@ package authorizationsService
 import (
 	"errors"
 	"fmt"
-	"pood/v2/app/models/tokenModel"
-	"pood/v2/app/models/userModel"
+	"pood/v2/app/models"
 	"pood/v2/config"
 )
 
-func GetUserByToken(token tokenModel.Token) (*userModel.User, error) {
-	var user userModel.User
+func GetUserByToken(token models.Token) (*models.User, error) {
+	var user models.User
 	err := config.Db.
-		Where(userModel.User{ID: token.UserId}).
+		Where(models.User{ID: token.UserId}).
 		First(&user).
 		Error
 	if err != nil {

@@ -1,13 +1,12 @@
 package actionTypes
 
 import (
-	"pood/v2/app/models/logModel"
-	"pood/v2/app/models/userActionModel"
+	"pood/v2/app/models"
 	"pood/v2/config"
 )
 
-func CreateLogType2(userAction userActionModel.UserAction, log logModel.Log) (string, error) {
-	var logs []logModel.Log
+func CreateLogType2(userAction models.UserAction, log models.Log) (*models.Log, string, error) {
+	var logs []models.Log
 	err := config.Db.
 		Where("user_action_id = ?", userAction.ID).
 		Where("start_time IS NOT NULL").
@@ -16,30 +15,30 @@ func CreateLogType2(userAction userActionModel.UserAction, log logModel.Log) (st
 		Error
 
 	if err != nil {
-		return "1", err
+		return nil, "1", err
 	}
 
 	if len(logs) == 0 {
 		log.StartTime = &log.LogDate
-		err = CreateLog(log)
-		return "new interval started", nil
+		respLog, _ := CreateLog(log)
+		return respLog, "new interval started", nil
 	}
 
 	for _, item := range logs {
 		item.EndTime = &log.LogDate
 		err = FinishLog(item)
 		if err != nil {
-			return "", err
+			return nil, "", err
 		}
 	}
 
-	return "interval ended", nil
+	return &logs[0], "interval ended", nil
 }
 
-func FinishLog(log logModel.Log) error {
+func FinishLog(log models.Log) error {
 	err := config.Db.
-		Model(logModel.Log{}).
-		Where(logModel.Log{Id: log.Id}).
+		Model(models.Log{}).
+		Where(models.Log{Id: log.Id}).
 		Updates(&log).
 		Error
 

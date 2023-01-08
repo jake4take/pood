@@ -2,18 +2,18 @@ package actionTypes
 
 import (
 	"errors"
-	"pood/v2/app/models/logModel"
+	"pood/v2/app/models"
 )
 
-func CreateLogType3(log logModel.Log) (string, error) {
+func CreateLogType3(log models.Log) (*models.Log, string, error) {
 	if log.Count == nil {
-		return "", errors.New("count is required parameter (type float)")
+		return nil, "", errors.New("count is required parameter (type float)")
 	}
 
-	err := CreateLog(log)
+	resp, err := CreateLog(log)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 
-	return "counted", nil
+	return resp, "counted", nil
 }

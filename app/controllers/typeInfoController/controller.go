@@ -3,7 +3,7 @@ package typeInfoController
 import (
 	"encoding/json"
 	"github.com/gofiber/fiber/v2"
-	"pood/v2/app/models/typeInfoModel"
+	"pood/v2/app/models"
 	"pood/v2/app/services/tokenService"
 	"pood/v2/config"
 )
@@ -20,8 +20,8 @@ func NewTypeInfoController() *TypeInfoController {
 // @Accept  json
 // @Produce json
 // @Tags    TypeInfo
-// @Success 200 {object} typeInfoModel.TypeInfoResponse
-// @Failure 401 {object} defaultModel.FailedResponse
+// @Success 200 {object} models.TypeInfoResponse
+// @Failure 401 {object} models.FailedResponse
 // @Router  /typeInfo [get]
 // @Security ApiKeyAuth
 func (TypeInfoController) GetTypeInfo(c *fiber.Ctx) error {
@@ -32,9 +32,9 @@ func (TypeInfoController) GetTypeInfo(c *fiber.Ctx) error {
 		})
 	}
 
-	var typeInfo []typeInfoModel.TypeInfo
+	var typeInfo []models.TypeInfo
 	err = config.Db.
-		Model(typeInfoModel.TypeInfo{}).
+		Model(models.TypeInfo{}).
 		Preload("SubType").
 		Find(&typeInfo).
 		Error
@@ -45,7 +45,7 @@ func (TypeInfoController) GetTypeInfo(c *fiber.Ctx) error {
 		})
 	}
 
-	var response []typeInfoModel.TypeInfoResponse
+	var response []models.TypeInfoResponse
 	data, err := json.Marshal(typeInfo)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

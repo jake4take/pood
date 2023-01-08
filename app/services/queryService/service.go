@@ -5,20 +5,20 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	"net/url"
-	"pood/v2/app/models/queryModel"
+	"pood/v2/app/models"
 	"strings"
 )
 
-func GetQueries(c *fiber.Ctx) (queries queryModel.Query) {
+func GetQueries(c *fiber.Ctx) (queries models.Query) {
 	u, _ := url.Parse(c.OriginalURL())
 	m, _ := url.ParseQuery(u.RawQuery)
 
 	return GetQueryFromMap(m)
 }
 
-func GetQueryFromMap(m url.Values) queryModel.Query {
+func GetQueryFromMap(m url.Values) models.Query {
 	replacer := strings.NewReplacer("[", " ", "]", " ", ",", " ")
-	var queries queryModel.Query
+	var queries models.Query
 
 	for n, v := range m {
 		if len(v[0]) == 0 {
@@ -75,7 +75,7 @@ func GetQueryFromMap(m url.Values) queryModel.Query {
 	return queries
 }
 
-func ConfigurationDbQuery(db *gorm.DB, queries queryModel.Query) *gorm.DB {
+func ConfigurationDbQuery(db *gorm.DB, queries models.Query) *gorm.DB {
 	if queries.Filters != nil {
 		for _, filter := range queries.Filters {
 			db = db.Where(filter)

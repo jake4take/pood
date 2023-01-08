@@ -3,23 +3,21 @@ package createMyActionService
 import (
 	"errors"
 	"fmt"
-	"pood/v2/app/models/actionModel"
-	"pood/v2/app/models/userActionModel"
-	"pood/v2/app/models/userModel"
+	"pood/v2/app/models"
 	"pood/v2/config"
 )
 
-func CreateUserActionByActionId(user userModel.User, reqAction *actionModel.Action) (error, string) {
+func CreateUserActionByActionId(user models.User, reqAction *models.Action) (error, string) {
 	action, err := FindActionById(*reqAction)
 	if err != nil {
 		return err, ""
 	}
 
-	userAction := userActionModel.UserAction{UserId: user.ID, ActionId: action.ID}
+	userAction := models.UserAction{UserId: user.ID, ActionId: action.ID}
 	err = config.Db.First(&userAction, userAction).Error
 
 	if err != nil {
-		_, err = CreateUserAction(userModel.User{ID: user.ID}, actionModel.Action{ID: action.ID})
+		_, err = CreateUserAction(models.User{ID: user.ID}, models.Action{ID: action.ID})
 		if err != nil {
 			return err, ""
 		}
@@ -36,7 +34,7 @@ func CreateUserActionByActionId(user userModel.User, reqAction *actionModel.Acti
 	return errors.New("user has this action"), ""
 }
 
-func CreateUserActionByActionName(user userModel.User, reqAction *actionModel.Action) (error, string) {
+func CreateUserActionByActionName(user models.User, reqAction *models.Action) (error, string) {
 	action, err := FindActionByName(*reqAction)
 	if err != nil {
 		action, err = CreateAction(*reqAction)
@@ -45,8 +43,8 @@ func CreateUserActionByActionName(user userModel.User, reqAction *actionModel.Ac
 		}
 	}
 
-	var userAction *userActionModel.UserAction
-	err = config.Db.First(&userAction, userActionModel.UserAction{UserId: user.ID, ActionId: action.ID}).Error
+	var userAction *models.UserAction
+	err = config.Db.First(&userAction, models.UserAction{UserId: user.ID, ActionId: action.ID}).Error
 	if err != nil {
 		userAction, err = CreateUserAction(user, *action)
 		if err != nil {
@@ -65,8 +63,8 @@ func CreateUserActionByActionName(user userModel.User, reqAction *actionModel.Ac
 	return errors.New("user has this action"), ""
 }
 
-func FindActionByName(action actionModel.Action) (*actionModel.Action, error) {
-	var resp actionModel.Action
+func FindActionByName(action models.Action) (*models.Action, error) {
+	var resp models.Action
 
 	err := config.Db.
 		First(&resp, action).
@@ -79,10 +77,10 @@ func FindActionByName(action actionModel.Action) (*actionModel.Action, error) {
 	return &resp, nil
 }
 
-func FindActionById(action actionModel.Action) (*actionModel.Action, error) {
-	var resp actionModel.Action
+func FindActionById(action models.Action) (*models.Action, error) {
+	var resp models.Action
 
-	err := config.Db.First(&resp, actionModel.Action{ID: action.ID}).Error
+	err := config.Db.First(&resp, models.Action{ID: action.ID}).Error
 
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("action not found (%d)", action.ID))
@@ -91,7 +89,7 @@ func FindActionById(action actionModel.Action) (*actionModel.Action, error) {
 	return &resp, nil
 }
 
-func CreateAction(action actionModel.Action) (resp *actionModel.Action, err error) {
+func CreateAction(action models.Action) (resp *models.Action, err error) {
 	err = config.Db.FirstOrCreate(&resp, &action).Error
 	if err != nil {
 		return nil, err
@@ -100,10 +98,10 @@ func CreateAction(action actionModel.Action) (resp *actionModel.Action, err erro
 	return resp, nil
 }
 
-func CreateUserAction(user userModel.User, action actionModel.Action) (*userActionModel.UserAction, error) {
-	var userAction userActionModel.UserAction
+func CreateUserAction(user models.User, action models.Action) (*models.UserAction, error) {
+	var userAction models.UserAction
 	err := config.Db.
-		FirstOrCreate(&userAction, &userActionModel.UserAction{
+		FirstOrCreate(&userAction, &models.UserAction{
 			UserId:   user.ID,
 			ActionId: action.ID,
 		}).
@@ -116,9 +114,9 @@ func CreateUserAction(user userModel.User, action actionModel.Action) (*userActi
 	return &userAction, nil
 }
 
-func EnableUserActionAgain(userAction userActionModel.UserAction) error {
+func EnableUserActionAgain(userAction models.UserAction) error {
 	err := config.Db.
-		Model(userActionModel.UserAction{}).
+		Model(models.UserAction{}).
 		Where(userAction).
 		Update("deleted", false).
 		Error

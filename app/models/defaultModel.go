@@ -1,4 +1,4 @@
-package defaultModel
+package models
 
 type SuccessResponse struct {
 	Detail string `json:"detail"`

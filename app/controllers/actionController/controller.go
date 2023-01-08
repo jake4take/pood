@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"pood/v2/app/controllers/actionController/createMyActionService"
-	"pood/v2/app/models/actionModel"
+	"pood/v2/app/models"
 	"pood/v2/app/services/tokenService"
 	"pood/v2/config"
 )
@@ -23,9 +23,9 @@ func NewActionController() *ActionController {
 // @Accept  json
 // @Produce json
 // @Tags    Actions
-// @Param body body actionModel.ActionCreateRequest true "body"
-// @Success 201 {object} defaultModel.SuccessResponse
-// @Failure 401 {object} defaultModel.FailedResponse
+// @Param body body models.ActionCreateRequest true "body"
+// @Success 201 {object} models.SuccessResponse
+// @Failure 401 {object} models.FailedResponse
 // @Router  /action [post]
 // @Security ApiKeyAuth
 func (ActionController) CreateMyAction(c *fiber.Ctx) error {
@@ -38,7 +38,7 @@ func (ActionController) CreateMyAction(c *fiber.Ctx) error {
 		})
 	}
 
-	var reqAction *actionModel.Action
+	var reqAction *models.Action
 	err = json.Unmarshal(c.Body(), &reqAction)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -73,9 +73,10 @@ func (ActionController) CreateMyAction(c *fiber.Ctx) error {
 // @Accept  json
 // @Produce json
 // @Tags    Actions
-// @Param name query string true "name"
-// @Success 200 {array} actionModel.Action
-// @Failure 401 {object} defaultModel.FailedResponse
+// @Param name query string false "name"
+// @Param template query boolean false "template"
+// @Success 200 {array} models.Action
+// @Failure 401 {object} models.FailedResponse
 // @Router  /actions [get]
 // @Security ApiKeyAuth
 func (ActionController) FindActionByName(c *fiber.Ctx) error {
@@ -86,15 +87,19 @@ func (ActionController) FindActionByName(c *fiber.Ctx) error {
 		})
 	}
 
-	name := c.Query("name", "")
-	if name == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"detail": "name is required",
-		})
+	db := config.Db
+	if name := c.Query("name", ""); name != "" {
+		db = db.Where(fmt.Sprintf("name like '%%%s%%'", name))
 	}
 
-	var actions []actionModel.Action
-	err = config.Db.Where(fmt.Sprintf("name like '%%%s%%'", name)).Find(&actions).Error
+	if template := c.Query("template", ""); template == "false" {
+		db = db.Where("template = false")
+	} else if template == "true" {
+		db = db.Where("template = true")
+	}
+
+	var actions []models.Action
+	err = db.Find(&actions).Error
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"detail": err.Error(),

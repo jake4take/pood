@@ -1,21 +1,18 @@
-package userActionModel
+package models
 
 import (
-	"pood/v2/app/models/actionModel"
-	"pood/v2/app/models/logModel"
-	"pood/v2/app/models/userModel"
 	"time"
 )
 
 type UserAction struct {
-	ID       uint                `json:"id" gorm:"primaryKey"`
-	UserId   uint                `json:"user_id"`
-	User     *userModel.User     `json:"user"`
-	ActionId uint                `json:"action_id"`
-	Action   *actionModel.Action `json:"action"`
-	Deleted  bool                `json:"deleted" gorm:"default:0"`
-	Logs     []logModel.Log      `json:"logs" gorm:"foreignKey:UserActionId"`
-	Private  bool                `json:"private" gorm:"default:true"`
+	ID       uint    `json:"id" gorm:"primaryKey"`
+	UserId   uint    `json:"user_id"`
+	User     *User   `json:"user"`
+	ActionId uint    `json:"action_id"`
+	Action   *Action `json:"action"`
+	Deleted  bool    `json:"deleted" gorm:"default:0"`
+	Logs     []Log   `json:"logs" gorm:"foreignKey:UserActionId"`
+	Private  bool    `json:"private" gorm:"default:true"`
 }
 
 type MyActionsResponse struct {
@@ -35,10 +32,10 @@ type MyActionsResponse struct {
 }
 
 type MyActiveActions struct {
-	ID          uint               `json:"id"`
-	Action      actionModel.Action `json:"action"`
-	StartTime   time.Time          `json:"start_time"`
-	Description *string            `json:"description"`
+	ID          uint      `json:"id"`
+	Action      Action    `json:"action"`
+	StartTime   time.Time `json:"start_time"`
+	Description *string   `json:"description"`
 }
 
 type UpdateRequest struct {

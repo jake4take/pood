@@ -41,7 +41,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/actionModel.ActionCreateRequest"
+                            "$ref": "#/definitions/models.ActionCreateRequest"
                         }
                     }
                 ],
@@ -49,13 +49,13 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.SuccessResponse"
+                            "$ref": "#/definitions/models.SuccessResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     }
                 }
@@ -83,8 +83,13 @@ const docTemplate = `{
                         "type": "string",
                         "description": "name",
                         "name": "name",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "template",
+                        "name": "template",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -93,14 +98,284 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/actionModel.Action"
+                                "$ref": "#/definitions/models.Action"
                             }
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/file": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Files"
+                ],
+                "summary": "Загрузить файл",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "binary",
+                        "name": "file",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateFileResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.FailedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/file/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Удалить file по id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Files"
+                ],
+                "summary": "Удалить file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/models.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.FailedResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.FailedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/log/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logs"
+                ],
+                "summary": "Изменить лог",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.PutLogRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "count": {
+                                            "type": "number"
+                                        },
+                                        "description": {
+                                            "type": "string"
+                                        },
+                                        "end_time": {
+                                            "type": "string"
+                                        },
+                                        "files": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.File"
+                                            }
+                                        },
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "log_date": {
+                                            "type": "string"
+                                        },
+                                        "start_time": {
+                                            "type": "string"
+                                        },
+                                        "user_action_id": {
+                                            "type": "integer"
+                                        },
+                                        "value": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.FailedResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.FailedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/logs/my": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logs"
+                ],
+                "summary": "Получить мои действия",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "field[eq]",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "count": {
+                                            "type": "number"
+                                        },
+                                        "description": {
+                                            "type": "string"
+                                        },
+                                        "end_time": {
+                                            "type": "string"
+                                        },
+                                        "files": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.File"
+                                            }
+                                        },
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "log_date": {
+                                            "type": "string"
+                                        },
+                                        "start_time": {
+                                            "type": "string"
+                                        },
+                                        "user_action_id": {
+                                            "type": "integer"
+                                        },
+                                        "value": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.FailedResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     }
                 }
@@ -128,13 +403,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/typeInfoModel.TypeInfoResponse"
+                            "$ref": "#/definitions/models.TypeInfoResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     }
                 }
@@ -161,13 +436,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/unitModel.Unit"
+                            "$ref": "#/definitions/models.Unit"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     }
                 }
@@ -206,20 +481,20 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/userActionModel.UserActionsResponse"
+                                "$ref": "#/definitions/models.UserActionsResponse"
                             }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     }
                 }
@@ -256,19 +531,19 @@ const docTemplate = `{
                     "204": {
                         "description": "No Content",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.SuccessResponse"
+                            "$ref": "#/definitions/models.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     }
                 }
@@ -281,7 +556,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "**action.type=1**; **required**: user_action_id *int*; **not required**: description *string*;\n**action.type=2**; **required**: user_action_id *int*; **not required**: description *string*;\n**action.type=3**; **required**: user_action_id *int*, count *float*; **not required**: description *string*;",
+                "description": "**If action.type = 3**, field count *float* is required;",
                 "consumes": [
                     "application/json"
                 ],
@@ -294,12 +569,19 @@ const docTemplate = `{
                 "summary": "Сделал action",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "body",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/logModel.CreateLogRequest"
+                            "$ref": "#/definitions/models.CreateLogRequest"
                         }
                     }
                 ],
@@ -307,19 +589,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.SuccessResponse"
+                            "$ref": "#/definitions/models.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     }
                 }
@@ -357,7 +639,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/userActionModel.UpdateRequest"
+                            "$ref": "#/definitions/models.UpdateRequest"
                         }
                     }
                 ],
@@ -365,19 +647,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.SuccessResponse"
+                            "$ref": "#/definitions/models.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     }
                 }
@@ -434,20 +716,20 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/logModel.GetStatsResponse"
+                                "$ref": "#/definitions/models.GetStatsResponse"
                             }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     }
                 }
@@ -491,20 +773,20 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/userActionModel.MyActionsResponse"
+                                "$ref": "#/definitions/models.MyActionsResponse"
                             }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     }
                 }
@@ -546,19 +828,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/userActionModel.MyActiveActions"
+                            "$ref": "#/definitions/models.MyActiveActions"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/defaultModel.FailedResponse"
+                            "$ref": "#/definitions/models.FailedResponse"
                         }
                     }
                 }
@@ -566,7 +848,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "actionModel.Action": {
+        "models.Action": {
             "type": "object",
             "properties": {
                 "id": {
@@ -577,6 +859,9 @@ const docTemplate = `{
                 },
                 "subtype": {
                     "type": "integer"
+                },
+                "template": {
+                    "type": "boolean"
                 },
                 "type": {
                     "type": "integer"
@@ -585,11 +870,11 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "unit_info": {
-                    "$ref": "#/definitions/unitModel.Unit"
+                    "$ref": "#/definitions/models.Unit"
                 }
             }
         },
-        "actionModel.ActionCreateRequest": {
+        "models.ActionCreateRequest": {
             "type": "object",
             "properties": {
                 "id": {
@@ -601,6 +886,9 @@ const docTemplate = `{
                 "subtype": {
                     "type": "integer"
                 },
+                "template": {
+                    "type": "boolean"
+                },
                 "type": {
                     "type": "integer"
                 },
@@ -609,23 +897,24 @@ const docTemplate = `{
                 }
             }
         },
-        "defaultModel.FailedResponse": {
+        "models.CreateFileResponse": {
             "type": "object",
             "properties": {
-                "detail": {
+                "create_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
                     "type": "string"
                 }
             }
         },
-        "defaultModel.SuccessResponse": {
-            "type": "object",
-            "properties": {
-                "detail": {
-                    "type": "string"
-                }
-            }
-        },
-        "logModel.CreateLogRequest": {
+        "models.CreateLogRequest": {
             "type": "object",
             "properties": {
                 "count": {
@@ -636,6 +925,12 @@ const docTemplate = `{
                 },
                 "end_time": {
                     "type": "string"
+                },
+                "file_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "start_start": {
                     "type": "string"
@@ -645,11 +940,42 @@ const docTemplate = `{
                 }
             }
         },
-        "logModel.GetStatsResponse": {
+        "models.FailedResponse": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.File": {
+            "type": "object",
+            "properties": {
+                "create_at": {
+                    "type": "string"
+                },
+                "delete_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "log_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.GetStatsResponse": {
             "type": "object",
             "properties": {
                 "action": {
-                    "$ref": "#/definitions/actionModel.Action"
+                    "$ref": "#/definitions/models.Action"
                 },
                 "count": {
                     "type": "integer"
@@ -657,7 +983,7 @@ const docTemplate = `{
                 "stats": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/logModel.Log"
+                        "$ref": "#/definitions/models.Log"
                     }
                 },
                 "user_action_id": {
@@ -665,7 +991,7 @@ const docTemplate = `{
                 }
             }
         },
-        "logModel.Log": {
+        "models.Log": {
             "type": "object",
             "properties": {
                 "count": {
@@ -677,6 +1003,12 @@ const docTemplate = `{
                 "end_time": {
                     "type": "string"
                 },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.File"
+                    }
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -685,6 +1017,9 @@ const docTemplate = `{
                 },
                 "start_time": {
                     "type": "string"
+                },
+                "user_action": {
+                    "$ref": "#/definitions/models.UserAction"
                 },
                 "user_action_id": {
                     "type": "integer"
@@ -697,52 +1032,7 @@ const docTemplate = `{
                 }
             }
         },
-        "typeInfoModel.TypeInfoResponse": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "sub_type": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "description": {
-                                "type": "string"
-                            },
-                            "id": {
-                                "type": "integer"
-                            },
-                            "name": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "unitModel.Unit": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "userActionModel.MyActionsResponse": {
+        "models.MyActionsResponse": {
             "type": "object",
             "properties": {
                 "action": {
@@ -781,11 +1071,11 @@ const docTemplate = `{
                 }
             }
         },
-        "userActionModel.MyActiveActions": {
+        "models.MyActiveActions": {
             "type": "object",
             "properties": {
                 "action": {
-                    "$ref": "#/definitions/actionModel.Action"
+                    "$ref": "#/definitions/models.Action"
                 },
                 "description": {
                     "type": "string"
@@ -798,7 +1088,95 @@ const docTemplate = `{
                 }
             }
         },
-        "userActionModel.UpdateRequest": {
+        "models.PutLogRequest": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "number"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "file_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TypeInfoResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sub_type": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "description": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "models.Unit": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "first_form": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "second_form": {
+                    "type": "string"
+                },
+                "third_form": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdateRequest": {
             "type": "object",
             "properties": {
                 "private": {
@@ -806,7 +1184,50 @@ const docTemplate = `{
                 }
             }
         },
-        "userActionModel.UserActionsResponse": {
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserAction": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "$ref": "#/definitions/models.Action"
+                },
+                "action_id": {
+                    "type": "integer"
+                },
+                "deleted": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Log"
+                    }
+                },
+                "private": {
+                    "type": "boolean"
+                },
+                "user": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.UserActionsResponse": {
             "type": "object",
             "properties": {
                 "action": {

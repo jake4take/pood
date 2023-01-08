@@ -1,15 +1,15 @@
 package doneActionService
 
 import (
+	"fmt"
 	"pood/v2/app/controllers/userActionController/doneActionService/actionTypes"
-	"pood/v2/app/models/logModel"
-	"pood/v2/app/models/userActionModel"
+	"pood/v2/app/models"
 	"pood/v2/config"
 	"time"
 )
 
-func HaveUserAction(userAction userActionModel.UserAction) (*userActionModel.UserAction, error) {
-	var resp userActionModel.UserAction
+func HaveUserAction(userAction models.UserAction) (*models.UserAction, error) {
+	var resp models.UserAction
 	userAction.Deleted = false
 
 	err := config.Db.
@@ -25,20 +25,39 @@ func HaveUserAction(userAction userActionModel.UserAction) (*userActionModel.Use
 	return &resp, nil
 }
 
-func CheckLogType(userAction userActionModel.UserAction, log logModel.Log) (detail string, err error) {
+func CheckLogType(userAction models.UserAction, log models.Log, filesId *[]int64) (detail string, err error) {
 	location := time.FixedZone("UTC-0", 0)
 	log.LogDate = time.Now().In(location)
 	detail = "ok"
 
+	var respLog *models.Log
 	switch userAction.Action.Type {
 	case 1:
-		err = actionTypes.CreateLog(log)
+		respLog, err = actionTypes.CreateLog(log)
 		detail = "counter increased"
 	case 2:
-		detail, err = actionTypes.CreateLogType2(userAction, log)
+		respLog, detail, err = actionTypes.CreateLogType2(userAction, log)
 	case 3:
-		detail, err = actionTypes.CreateLogType3(log)
+		respLog, detail, err = actionTypes.CreateLogType3(log)
+	}
+
+	if respLog != nil && filesId != nil {
+		for _, id := range *filesId {
+			fmt.Println(respLog.Id)
+			updateFilesLogId(respLog.Id, uint(id))
+		}
 	}
 
 	return detail, err
+}
+
+func updateFilesLogId(logId uint, fileId uint) {
+	err := config.Db.Model(models.File{}).
+		Where(models.File{ID: fileId}).
+		Update("log_id", logId).
+		Error
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
